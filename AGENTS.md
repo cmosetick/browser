@@ -8,6 +8,25 @@ Run `make download-v8` once first: it fetches the prebuilt V8 archive into `.lp-
 
 The C and Rust dependencies are built with `-Doptimize=fast` whatever `-Doptimize` is, so debug and release builds share them. Pass `ZIGFLAGS=-Ddebug_deps` to step into a dependency with a debugger.
 
+## Local build preferences (cmosetick fork)
+
+On a non-dedicated build server or a desktop workstation, keep the machine
+responsive during a build (avoid saturating all cores) by capping parallelism
+and running niced:
+
+```bash
+export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"   # zig 0.17.0 lives here
+
+make download-v8                                     # once; populates .lp-cache/
+
+nice -n 10 zig build -Doptimize=ReleaseFast -j6      # -j6 preferred, -j8 usable
+```
+
+Prefer `-j6`; `-j8` is fine if you want it a bit faster. Builds likely to exceed
+~5 minutes should be handed to the user to run, not launched in-session.
+
+`ReleaseFast` matches the behavior of the upstream release binaries.
+
 ```bash
 make test                                       # Run all tests
 make test F="server"                            # Filter by substring
